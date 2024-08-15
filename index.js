@@ -1,31 +1,30 @@
-const http = require('http');
-const fs = require('fs');
+const express = require('express');
 const path = require('path');
 
-const server = http.createServer((req, res) => {
-    let filePath = path.join(__dirname, req.url === '/' ? 'index.html' : req.url === '/about' ? 'about.html' : req.url === '/contact-me' ? 'contact-me.html' : '404.html');
-    const extname = path.extname(filePath);
-    let contentType = 'text/html';
+const app = express();
+const PORT = 8080;
 
-    fs.readFile(filePath, (err, content) => {
-        if (err) {
-            if (err.code == 'ENOENT') {
-                fs.readFile(path.join(__dirname, '404.html'), (err, content) => {
-                    res.writeHead(404, { 'Content-Type': 'text/html' });
-                    res.end(content, 'utf8');
-                });
-            } else {
-                res.writeHead(500);
-                res.end(`Server Error: ${err.code}`);
-            }
-        } else {
-            res.writeHead(200, { 'Content-Type': contentType });
-            res.end(content, 'utf8');
-        }
-    });
+// Serve static files
+app.use(express.static(path.join(__dirname)));
+
+// Routes
+app.get('/', (req, res) => {
+    res.sendFile(path.join(__dirname, 'index.html'));
 });
 
-const PORT = 8080;
-server.listen(PORT, () => {
-    console.log(`Server running on port ${PORT}`);
+app.get('/about', (req, res) => {
+    res.sendFile(path.join(__dirname, 'about.html'));
+});
+
+app.get('/contact-me', (req, res) => {
+    res.sendFile(path.join(__dirname, 'contact-me.html'));
+});
+
+// Handle 404
+app.use((req, res) => {
+    res.status(404).sendFile(path.join(__dirname, '404.html'));
+});
+
+app.listen(PORT, () => {
+    console.log(`Server is running on http://localhost:${PORT}`);
 });
